@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FELYN</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  </head>
+  <body>
+    <div id="splash-screen" class="splash-screen">
+      <p id="splash-text-1" class="splash-text">UNIVERSO</p>
+      <p id="splash-text-2" class="splash-text">FELYN</p>
+      <div class="password-input-container">
+        <input
+          type="password"
+          id="password-input"
+          placeholder="INGRESA EL CÓDIGO"
+          maxlength="5"
+        />
+        <button id="enter-button">ENTRAR</button>
+        <p class="password-hint">
+          Solo tú puedes descifrar el código secreto ...
+        </p>
+        <p id="password-error" class="password-error">¡CÓDIGO INCORRECTO!</p>
+      </div>
+    </div>
+
+    <div id="main-universe" class="main-universe hidden">
+      <button
+        id="audio-control"
+        class="audio-control"
+        aria-label="Toggle background music"
+      >
+        <svg
+          id="speaker-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feather feather-volume-2"
+        >
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path
+            d="M19.07 4.93a10 10 0 1 1 0 14.14M22.42 1.58a15 0 1 1 0 20.84"
+          ></path>
+        </svg>
+      </button>
+      <audio id="background-audio" loop src="assets/audio/fondo.mp3"></audio>
+
+      <div id="sunflower-container" class="sunflower-container">
+        <img
+          id="sunflower-base-image"
+          class="sunflower-image"
+          src="assets/images/sunflower_base.png"
+          alt="Base del Girasol"
+        />
+      </div>
+
+      <div id="petal-message-container" class="petal-message-container">
+        <p id="petal-message" class="petal-message"></p>
+      </div>
+
+      <div class="petal-counter">
+        <span id="current-petals">0</span> / <span id="total-petals">14</span>
+      </div>
+
+      <div id="help-message" class="help-message" style="opacity: 0">
+        ¡HAZ CLIC EN EL GIRASOL PARA REVELAR UN MENSAJE!
+      </div>
+    </div>
+
+    <div id="final-modal" class="final-modal">
+      <div class="modal-content">
+        <h2 class="modal-title">¡FELIZ CUMPLEAÑOS!</h2>
+        <p class="modal-text">
+          "Que este pequeñito universo virtual te recuerde lo especial y valiosa
+          que eres. Que te recuerde que tu existencia es un motivo de
+          celebración y motivación, Que te recuerde que
+          hoy celebro el cumpleaños de mi niña linda. Que te recuerde que Te Quark, hoy y siempre, aquí
+          y en todas las dimensiones posibles."
+        </p>
+        <img
+          src="assets/images/sticker.png"
+          alt="Imagen final de celebración"
+          class="modal-image"
+        />
+      </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>
