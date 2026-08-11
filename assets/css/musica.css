@@ -1,0 +1,64 @@
+/* Barra de música: tres botones sueltos abajo a la derecha, sin fondo, para
+   que se fundan con el cielo y no parezcan una caja pegada encima. */
+.reproductor {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  z-index: 300;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.musica-boton {
+  font-family: var(--font-body);
+  font-size: 1.05em;
+  line-height: 1;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  /* Apagados hasta que ella los busca, para no robar atención al cielo. */
+  color: rgba(255, 255, 255, 0.45);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  /* Sin esto, al arrastrar sobre un botón el navegador se lleva el símbolo
+     como si fuera una imagen, y queda "pegado" al cursor. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.musica-boton:hover {
+  color: var(--color-golden);
+  transform: scale(1.15);
+}
+
+.musica-boton:focus {
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .reproductor {
+    bottom: 12px;
+    right: 12px;
+    gap: 4px;
+  }
+
+  .musica-boton {
+    width: 34px;
+    height: 34px;
+    /* En pantalla táctil no hay hover, así que se ven un poco más presentes. */
+    color: rgba(255, 255, 255, 0.6);
+  }
+}

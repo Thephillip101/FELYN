@@ -1,0 +1,441 @@
+.universo {
+  position: fixed;
+  inset: 0;
+  opacity: 0;
+}
+
+.cielo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #010104;
+  touch-action: none;
+  cursor: grab;
+  /* Sin esto, arrastrar con el mouse empieza a seleccionar texto (los nombres
+     de los planetas) y el arrastre se traba a mitad de camino. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cielo:active {
+  cursor: grabbing;
+}
+
+/* Viñeta fija que oscurece los bordes: acompaña al efecto lente para que la
+   atención caiga siempre en el centro de la pantalla. */
+.cielo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0) 45%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  pointer-events: none;
+  z-index: 6;
+}
+
+/* Único fondo que queda: una nebulosa muy tenue, sin estrellas de adorno.
+   Se repite al infinito para que el cielo nunca se acabe, y se desplaza más
+   despacio que el mundo (parallax) para dar profundidad.
+
+   IMPORTANTE: cada degradado usa "closest-side" y va centrado en su mosaico,
+   así llega a transparente justo antes del borde. Con degradados que todavía
+   tenían color en el borde, al repetirse aparecía una línea visible cruzando
+   la pantalla. No poner degradados que no se apaguen dentro de su mosaico. */
+.capa-profundidad {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: background-position;
+}
+
+.capa-nebulosa {
+  background-image: radial-gradient(
+      circle closest-side at 50% 50%,
+      rgba(64, 44, 122, 0.2),
+      rgba(64, 44, 122, 0)
+    ),
+    radial-gradient(
+      circle closest-side at 50% 50%,
+      rgba(20, 74, 116, 0.17),
+      rgba(20, 74, 116, 0)
+    );
+  /* Dos tamaños distintos para que las manchas no formen una cuadrícula. */
+  background-size: 1100px 1100px, 1700px 1700px;
+  background-repeat: repeat;
+}
+
+.mundo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* La nave se arma en tres capas anidadas, cada una con un solo trabajo, para
+   que la flotación y la inclinación del vuelo no se pisen entre sí. */
+.nave-contenedor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 76px;
+  height: 80px;
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%);
+  pointer-events: none;
+  /* Por encima de cualquier estrella o planeta: antes quedaba escondida
+     detrás de ellos y a veces desaparecía del todo. */
+  z-index: 50;
+}
+
+.nave-flote,
+.nave-cuerpo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+}
+
+.nave {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.45));
+  z-index: 2;
+}
+
+/* La hélice gira siempre, aunque la nave esté detenida. */
+.helice {
+  transform-box: view-box;
+  transform-origin: 40px 12px;
+  animation: girarHelice 0.45s linear infinite;
+}
+
+@keyframes girarHelice {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* La bufanda ondea sola, como si siempre hubiera viento. */
+.bufanda {
+  transform-box: view-box;
+  transform-origin: 40px 38px;
+  animation: ondear 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes ondear {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(5deg); }
+}
+
+/* Llama del propulsor: apagada mientras flota, encendida durante el vuelo. */
+.propulsor {
+  position: absolute;
+  left: 50%;
+  top: 80%;
+  width: 22px;
+  height: 42px;
+  transform: translateX(-50%) scaleY(0.3);
+  transform-origin: 50% 0%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 240, 190, 0.95) 0%,
+    rgba(255, 170, 70, 0.7) 45%,
+    rgba(255, 90, 40, 0) 100%
+  );
+  border-radius: 50% 50% 60% 60% / 25% 25% 100% 100%;
+  filter: blur(1px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cada estrella tiene su propio color (--color-estrella, calculado desde su
+   id en mapa.js), pero solo lo muestra una vez visitada. */
+/* mapa.js escribe en cada cuadro --pos (dónde está, orbitando) y --lente /
+   --opacidad-lente (cuánto se encoge y se apaga según su distancia al centro
+   de la pantalla). Todo va por transform para no forzar recálculo de layout. */
+.estrella {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--color-estrella, #ffffff);
+  cursor: pointer;
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%)
+    scale(calc(var(--escala, 1) * var(--lente, 1)));
+  opacity: var(--opacidad-lente, 1);
+  box-shadow: 0 0 8px 2px var(--color-estrella, rgba(255, 255, 255, 0.5));
+  /* Cada estrella titila a su propia velocidad y en su propio momento, para
+     que el cielo nunca lata todo junto. */
+  animation: titilar var(--titileo, 3.4s) infinite ease-in-out;
+  animation-delay: var(--retraso, 0s);
+}
+
+/* Zona de toque invisible: las estrellas son chiquitas y apuntarles con el
+   dedo era difícil. No se ve nada, solo agranda el área que responde. */
+.estrella::before,
+.planeta::before {
+  content: "";
+  position: absolute;
+  inset: -28px;
+  border-radius: 50%;
+}
+
+.estrella:hover {
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%)
+    scale(calc(var(--escala, 1) * var(--lente, 1) * 1.5));
+}
+
+/* El titileo va por brillo y no por opacidad, porque la opacidad ya la usa
+   el efecto lente y una animación CSS le ganaría. El desenfoque y el brillo
+   propio de cada estrella (--brillo, más bajo cuanto más lejos del centro del
+   cúmulo) viajan dentro de la misma animación porque filter es una sola
+   propiedad: si se pusieran aparte, la animación los borraría. */
+@keyframes titilar {
+  0%, 100% {
+    filter: brightness(calc(var(--brillo, 1) * 0.8)) blur(var(--desenfoque, 0px));
+  }
+  50% {
+    filter: brightness(calc(var(--brillo, 1) * 1.3)) blur(var(--desenfoque, 0px));
+  }
+}
+
+/* Sin visitar: todas iguales, turquesa y pulsando — su color propio todavía
+   es un secreto. */
+.estrella.nueva {
+  background: var(--color-turquoise-light);
+  box-shadow: 0 0 10px 4px rgba(69, 162, 158, 0.85);
+  animation: pulso var(--pulso, 1.6s) infinite ease-in-out;
+  animation-delay: var(--retraso, 0s);
+}
+
+@keyframes pulso {
+  0%, 100% { box-shadow: 0 0 8px 3px rgba(69, 162, 158, 0.7); }
+  50% { box-shadow: 0 0 18px 7px rgba(69, 162, 158, 1); }
+}
+
+/* Planetas: cada cumpleaños repartido libremente por el mundo, con un
+   sombreado tipo esfera (más claro arriba-izquierda) y una "atmósfera"
+   girando despacio para que se sientan vivos y con volumen. */
+.planeta {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%)
+    scale(calc(var(--escala, 1) * var(--lente, 1)));
+  opacity: var(--opacidad-lente, 1);
+  /* Los que están "más lejos" van levemente desenfocados: sin estrellas de
+     fondo, este es uno de los cimientos de la sensación de profundidad.
+     --brillo apaga además lo que está en el borde del cúmulo. */
+  filter: brightness(var(--brillo, 1)) blur(var(--desenfoque, 0px));
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--color-secundario) 70%, white 30%) 0%,
+    var(--color-secundario) 35%,
+    var(--color-principal) 75%,
+    color-mix(in srgb, var(--color-principal) 70%, black 30%) 100%
+  );
+  box-shadow: 0 0 26px 6px color-mix(in srgb, var(--color-principal) 45%, transparent);
+  /* OJO: nada de "transition: transform" acá. El bucle reescribe --pos en
+     cada cuadro, así que la transición se reiniciaba sin parar y el planeta
+     nunca llegaba a destino: quedaban todos congelados en el punto de
+     partida. Las estrellas tampoco la llevan, por el mismo motivo. */
+}
+
+.planeta::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--color-secundario) 40%, transparent) 90deg,
+    transparent 180deg,
+    color-mix(in srgb, var(--color-secundario) 25%, transparent) 270deg,
+    transparent 360deg
+  );
+  animation: girarAtmosfera 14s linear infinite;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes girarAtmosfera {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.planeta:hover {
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%)
+    scale(calc(var(--escala, 1) * var(--lente, 1) * 1.12));
+}
+
+/* El planeta del centro: el corazón del universo, siempre nítido y con un
+   halo propio para que se lea como el punto de referencia de todo el mapa. */
+/* Un solo halo y no dos: la sombra de 140px de difuminado con 50px de
+   extensión era carísima de pintar y se notaba en los tirones al desplazarse.
+   El resplandor grande lo hace ahora el ::after, que es un degradado y sale
+   mucho más barato. */
+.planeta-centro {
+  box-shadow: 0 0 48px 12px color-mix(in srgb, var(--color-principal) 38%, transparent);
+}
+
+.planeta-centro::after {
+  inset: -55%;
+  background: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, var(--color-principal) 22%, transparent),
+    transparent
+  );
+  animation: none;
+  opacity: 1;
+}
+
+.planeta-nombre {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-size: 0.95em;
+  color: var(--color-sand);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.planeta:hover .planeta-nombre {
+  opacity: 1;
+}
+
+.pista {
+  position: absolute;
+  /* Por encima del reproductor, que vive centrado abajo. */
+  bottom: 86px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Imprescindible: se desvanece a opacidad 0 pero el elemento sigue ahí, y
+     sin esto seguía tragándose los toques, dejando una franja muerta abajo
+     donde el arrastre simplemente no respondía. */
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-size: clamp(0.8em, 2.5vw, 1.1em);
+  color: var(--color-warm-yellow);
+  text-align: center;
+  z-index: 30;
+  white-space: nowrap;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+/* Va abajo y no en el medio: así la estrella que acaba de visitar queda a la
+   vista, y el cielo se puede seguir arrastrando mientras lee. */
+.mensaje-container {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 620px);
+  padding: 18px 20px;
+  background: rgba(0, 0, 0, 0.96);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  font-family: var(--font-body);
+  font-size: clamp(1em, 3vw, 1.35em);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.mensaje-texto {
+  margin: 0;
+  line-height: 1.4;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+  /* Respeta los saltos de línea del texto, para que los poemas conserven su
+     forma en vez de quedar en un párrafo corrido. */
+  white-space: pre-line;
+  /* Los mensajes largos no deben salirse de la pantalla. */
+  max-height: 46vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Marco dorado para las cartas que pesan más que las demás. */
+.mensaje-container.especial {
+  border: 3px solid var(--color-golden);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9), 0 0 26px rgba(255, 215, 0, 0.22);
+  padding-top: 26px;
+}
+
+.mensaje-container.especial::before {
+  content: "✦";
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-golden);
+  color: var(--color-dark-blue);
+  font-size: 0.75em;
+  line-height: 1;
+  padding: 4px 14px 5px;
+}
+
+.mensaje-cerrar {
+  font-family: var(--font-body);
+  font-size: clamp(0.85em, 2.4vw, 1em);
+  padding: 8px 18px;
+  background-color: var(--color-medium-blue);
+  border: none;
+  color: var(--color-sand);
+  cursor: pointer;
+  transition: background-color 0.1s steps(1);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mensaje-cerrar:hover {
+  background-color: var(--color-turquoise-dark);
+}
+
+@media (max-width: 768px) {
+  .nave-contenedor {
+    width: 60px;
+    height: 63px;
+  }
+  .mensaje-container {
+    bottom: 88px;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .estrella {
+    width: 15px;
+    height: 15px;
+  }
+  .planeta {
+    width: 58px;
+    height: 58px;
+  }
+  .pista {
+    font-size: clamp(0.7em, 2.2vw, 0.9em);
+    /* Deja libre la franja de abajo, donde vive el reproductor. */
+    bottom: 76px;
+  }
+}

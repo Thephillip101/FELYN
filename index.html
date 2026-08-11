@@ -2,9 +2,16 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FELYN</title>
-    <link rel="stylesheet" href="assets/css/style.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Universo FELYN</title>
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/mapa.css" />
+    <link rel="stylesheet" href="assets/css/planetas.css" />
+    <link rel="stylesheet" href="assets/css/comic.css" />
+    <link rel="stylesheet" href="assets/css/musica.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
   </head>
   <body>
@@ -26,32 +33,83 @@
       </div>
     </div>
 
-    <div id="main-universe" class="main-universe hidden">
-      <button
-        id="audio-control"
-        class="audio-control"
-        aria-label="Toggle background music"
-      >
-        <svg
-          id="speaker-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="feather feather-volume-2"
-        >
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-          <path
-            d="M19.07 4.93a10 10 0 1 1 0 14.14M22.42 1.58a15 0 1 1 0 20.84"
-          ></path>
-        </svg>
-      </button>
-      <audio id="background-audio" loop src="assets/audio/fondo.mp3"></audio>
+    <!-- Barra de música: persistente, visible en el mapa y en cualquier planeta -->
+    <div id="reproductor" class="reproductor hidden">
+      <button id="musica-anterior" class="musica-boton" aria-label="Canción anterior">⏮</button>
+      <button id="musica-play" class="musica-boton" aria-label="Reproducir o pausar">▶</button>
+      <button id="musica-siguiente" class="musica-boton" aria-label="Siguiente canción">⏭</button>
+      <audio id="musica-audio"></audio>
+    </div>
+
+    <div id="universo" class="universo hidden">
+      <div id="cielo" class="cielo">
+        <div id="capa-nebulosa" class="capa-profundidad capa-nebulosa"></div>
+        <div id="mundo" class="mundo">
+          <!--
+            La nave va en tres capas anidadas para que sus movimientos no se
+            peleen entre sí: el contenedor la ubica en el mundo, la capa de
+            flote la mece sola, y el cuerpo se inclina al volar.
+          -->
+          <div id="nave-contenedor" class="nave-contenedor">
+            <div id="nave-flote" class="nave-flote">
+              <div id="nave-cuerpo" class="nave-cuerpo">
+                <div id="propulsor" class="propulsor"></div>
+                <!--
+                  La avioneta del principito: biplano de hélice visto desde
+                  arriba, con la bufanda larga ondeando detrás y una rosa en la
+                  cabina. Dibujado a mano en SVG.
+                -->
+                <svg id="nave" class="nave" viewBox="0 0 80 84">
+                  <!-- bufanda: va detrás de todo y ondea sola -->
+                  <g class="bufanda">
+                    <path d="M37 38 C33 48, 30 57, 22 66 C26.5 57.5, 29 49, 31 40 Z" fill="#e0554f" />
+                    <path d="M43 38 C47 48, 50 57, 58 66 C53.5 57.5, 51 49, 49 40 Z" fill="#c9403b" />
+                  </g>
+                  <!-- ala inferior (más atrás y más oscura: se ve el biplano) -->
+                  <path d="M16 47 L33.5 45 L33.5 55 L17.5 57 Z" fill="#c9932f" stroke="#8a6320" stroke-width="1.1" stroke-linejoin="round" />
+                  <path d="M64 47 L46.5 45 L46.5 55 L62.5 57 Z" fill="#c9932f" stroke="#8a6320" stroke-width="1.1" stroke-linejoin="round" />
+                  <!-- fuselaje -->
+                  <path d="M40 14 C45 19, 47 29, 46.5 40 L46.5 62 C46.5 68, 43.5 72, 40 75 C36.5 72, 33.5 68, 33.5 62 L33.5 40 C33 29, 35 19, 40 14 Z"
+                        fill="var(--color-golden)" stroke="#a97c2b" stroke-width="1.6" stroke-linejoin="round" />
+                  <!-- ala superior -->
+                  <path d="M6 33 L33.5 30 L33.5 41 L7 44 Z" fill="#f0c75e" stroke="#a97c2b" stroke-width="1.3" stroke-linejoin="round" />
+                  <path d="M74 33 L46.5 30 L46.5 41 L73 44 Z" fill="#f0c75e" stroke="#a97c2b" stroke-width="1.3" stroke-linejoin="round" />
+                  <!-- cola -->
+                  <path d="M33.5 64 L24 69 L24.5 72 L33.5 70 Z" fill="#d6a63f" stroke="#8a6320" stroke-width="1" stroke-linejoin="round" />
+                  <path d="M46.5 64 L56 69 L55.5 72 L46.5 70 Z" fill="#d6a63f" stroke="#8a6320" stroke-width="1" stroke-linejoin="round" />
+                  <!-- cabina -->
+                  <ellipse cx="40" cy="33" rx="6.5" ry="8" fill="var(--color-dark-blue)" stroke="var(--color-sand)" stroke-width="1.5" />
+                  <!-- la rosa que lleva consigo -->
+                  <rect x="39.4" y="32" width="1.3" height="6.5" fill="#2f7a4f" />
+                  <circle cx="40" cy="31" r="2.8" fill="#e0554f" />
+                  <circle cx="40" cy="31" r="1.2" fill="#f2938d" />
+                  <!-- hélice: gira siempre -->
+                  <g class="helice">
+                    <ellipse cx="40" cy="12" rx="16" ry="2" fill="#cfd6e0" opacity="0.55" />
+                  </g>
+                  <circle cx="40" cy="12" r="2.4" fill="#a97c2b" stroke="#7d5a1e" stroke-width="1" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <!-- Las estrellas y los planetas se agregan aquí automáticamente por mapa.js -->
+        </div>
+      </div>
+
+      <div id="pista" class="pista">
+        Arrastra para explorar. Toca una estrella o un planeta.
+      </div>
+
+      <!-- El mensaje se queda hasta que ella lo cierre: sin prisa para leer. -->
+      <div id="mensaje-container" class="mensaje-container">
+        <p id="mensaje-texto" class="mensaje-texto"></p>
+        <button id="mensaje-cerrar" class="mensaje-cerrar">Seguir explorando</button>
+      </div>
+    </div>
+
+    <!-- Vista del planeta girasol (primer cumpleaños) -->
+    <div id="vista-girasol" class="vista-planeta vista-girasol hidden">
+      <button class="volver-boton" data-volver>← Volver al universo</button>
 
       <div id="sunflower-container" class="sunflower-container">
         <img
@@ -66,33 +124,55 @@
         <p id="petal-message" class="petal-message"></p>
       </div>
 
-      <div class="petal-counter">
-        <span id="current-petals">0</span> / <span id="total-petals">14</span>
-      </div>
-
       <div id="help-message" class="help-message" style="opacity: 0">
         ¡HAZ CLIC EN EL GIRASOL PARA REVELAR UN MENSAJE!
       </div>
-    </div>
 
-    <div id="final-modal" class="final-modal">
-      <div class="modal-content">
-        <h2 class="modal-title">¡FELIZ CUMPLEAÑOS!</h2>
-        <p class="modal-text">
-          "Que este pequeñito universo virtual te recuerde lo especial y valiosa
-          que eres. Que te recuerde que tu existencia es un motivo de
-          celebración y motivación, Que te recuerde que
-          hoy celebro el cumpleaños de mi niña linda. Que te recuerde que Te Quark, hoy y siempre, aquí
-          y en todas las dimensiones posibles."
-        </p>
-        <img
-          src="assets/images/sticker.png"
-          alt="Imagen final de celebración"
-          class="modal-image"
-        />
+      <div id="final-modal" class="final-modal">
+        <div class="modal-content">
+          <h2 class="modal-title">¡FELIZ CUMPLEAÑOS!</h2>
+          <p class="modal-text">
+            "Que este pequeñito universo virtual te recuerde lo especial y valiosa
+            que eres. Que te recuerde que tu existencia es un motivo de
+            celebración y motivación, Que te recuerde que
+            hoy celebro el cumpleaños de mi niña linda. Que te recuerde que Te Quark, hoy y siempre, aquí
+            y en todas las dimensiones posibles."
+          </p>
+          <img
+            src="assets/images/sticker.png"
+            alt="Imagen final de celebración"
+            class="modal-image"
+          />
+        </div>
       </div>
     </div>
 
-    <script src="assets/js/main.js"></script>
+    <!-- Vista del planeta frío: el cuento en viñetas (cumpleaños de este año) -->
+    <div id="vista-frio" class="vista-planeta vista-frio hidden">
+      <button class="volver-boton" data-volver>← Volver al universo</button>
+
+      <div class="comic">
+        <div id="comic-vineta" class="comic-vineta">
+          <img id="comic-imagen" class="comic-imagen" alt="" />
+          <p id="comic-marcador" class="comic-marcador hidden"></p>
+          <p id="comic-texto" class="comic-texto"></p>
+        </div>
+
+        <div class="comic-controles">
+          <button id="comic-anterior" class="comic-boton" aria-label="Viñeta anterior">‹</button>
+          <span id="comic-progreso" class="comic-progreso"></span>
+          <button id="comic-siguiente" class="comic-boton" aria-label="Viñeta siguiente">›</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/data/mensajes.js"></script>
+    <script src="assets/js/data/cumpleanos.js"></script>
+    <script src="assets/js/data/playlist.js"></script>
+    <script src="assets/js/data/cuento.js"></script>
+    <script src="assets/js/musica.js"></script>
+    <script src="assets/js/mapa.js"></script>
+    <script src="assets/js/vistaGirasol.js"></script>
+    <script src="assets/js/vistaFrio.js"></script>
   </body>
 </html>
