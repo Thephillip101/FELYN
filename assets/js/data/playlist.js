@@ -1,12 +1,14 @@
 // Canciones de fondo del universo.
 //
-// La PRIMERA de la lista suena siempre al empezar; las demás salen en orden
-// aleatorio, sin repetirse hasta que suenen todas. Así que deja arriba la
-// canción con la que quieres que se abra el universo.
+// El orden es TOTALMENTE al azar: se baraja la lista entera cada vuelta y
+// ninguna canción tiene un lugar reservado. Dentro de una vuelta no se repite
+// ninguna hasta que hayan sonado todas.
 //
 // Para agregar otra: copia el archivo de audio a assets/audio/ y suma un
 // bloque como estos. El id debe ser único.
-// "titulo" es solo para que tú sepas cuál es cuál; no se muestra en pantalla.
+//
+// OJO con "titulo": ahora SÍ se ve en pantalla, en el menú de canciones que
+// ella abre con el botón ♫. Ponle el nombre de verdad de cada canción.
 
 const playlist = [
   {

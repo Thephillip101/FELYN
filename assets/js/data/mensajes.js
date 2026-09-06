@@ -383,4 +383,11 @@ const mensajes = [
     texto:
       "Érase una vez un pingüinito y una pingüinita que se conocieron por casualidad,\ny que contra todo pronóstico se empezaron a gustar...\n\nMientras más se conocían más se enloquecían,\ny aunque muy diferentes eran, estar juntos querían...\n\nHabía muchas cosas que se interponían entre los dos,\npero eso no los detenía; ellos sabían que no.\n\nAunque en un inicio enamorarse no querían,\nllegó un momento en el que retractarse no podían.\n\nResulta que juntos querían estar,\ny aunque lejos vivían, no se dejaban de hablar...\n\nEl pingüinito poco a poco sentía que se enamoraba,\ny mientras más pasaba el tiempo, ella cada vez más lo embrujaba...\n\nLlegó un punto en el que él sabía que la pingüinita muy hechizado lo tenía,\nporque era la razón más lógica para lo que él sentía.\n\nEra muy extraño, porque el pingüinito era uno más del montón,\npero aquella pingüinita... Ufffff, era el más exquisito bombón...\n\nLa belleza de la pingüinita cada día crecía más,\ny la muy descarada al pingüinito quería matar.\n\nAunque ella lo negaba, el pingüinito sabía que embrujado estaba,\ny siempre discutían como locos porque muy locos estaban.\n\nLo mejor de la historia es que cada vez más lo disfrutaban,\ny aunque no lo parezca, esto aún no acaba.",
   },
+  {
+    id: "nota-064",
+    fecha: "",
+    especial: true,
+    texto:
+      "Confieso algo que no he dicho en voz alta: me pone nervioso volver a verte.\n\nNo nervioso de miedo. Nervioso de esos en los que uno ensaya mil veces lo que va a decir y después, llegado el momento, se le olvida todo. Llevo tanto tiempo imaginando ese día que ya ni sé cómo voy a reaccionar cuando por fin llegue.\n\nMe da vueltas la idea de quedarme callado justo cuando más quiero hablar. De que se me note demasiado. Y al mismo tiempo me aterra que se me note menos de lo que en realidad es.\n\nUno esperaría que después de tanto tiempo la cosa se calmara, que la costumbre hiciera lo suyo. Pues no. Sigue intacto, como el primer día.\n\nSupongo que uno solo se pone así por lo que de verdad le importa. Y tú me importas de una forma que todavía no aprendí a disimular.",
+  },
 ];

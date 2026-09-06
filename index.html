@@ -35,6 +35,9 @@
 
     <!-- Barra de música: persistente, visible en el mapa y en cualquier planeta -->
     <div id="reproductor" class="reproductor hidden">
+      <!-- El menú de canciones se llena solo desde playlist.js -->
+      <div id="musica-lista" class="musica-lista hidden"></div>
+      <button id="musica-lista-boton" class="musica-boton" aria-label="Elegir canción">♫</button>
       <button id="musica-anterior" class="musica-boton" aria-label="Canción anterior">⏮</button>
       <button id="musica-play" class="musica-boton" aria-label="Reproducir o pausar">▶</button>
       <button id="musica-siguiente" class="musica-boton" aria-label="Siguiente canción">⏭</button>
@@ -166,6 +169,19 @@
       </div>
     </div>
 
+    <!-- Vista del planeta que todavía se está construyendo -->
+    <div id="vista-construccion" class="vista-planeta vista-construccion hidden">
+      <button class="volver-boton" data-volver>← Volver al universo</button>
+
+      <div class="obra">
+        <div class="obra-andamio" aria-hidden="true">
+          <span class="obra-nucleo"></span>
+        </div>
+        <h2 class="obra-titulo">En construcción</h2>
+        <p id="obra-texto" class="obra-texto"></p>
+      </div>
+    </div>
+
     <script src="assets/js/data/mensajes.js"></script>
     <script src="assets/js/data/cumpleanos.js"></script>
     <script src="assets/js/data/playlist.js"></script>
@@ -174,5 +190,6 @@
     <script src="assets/js/mapa.js"></script>
     <script src="assets/js/vistaGirasol.js"></script>
     <script src="assets/js/vistaFrio.js"></script>
+    <script src="assets/js/vistaConstruccion.js"></script>
   </body>
 </html>

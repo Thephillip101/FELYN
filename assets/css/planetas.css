@@ -235,3 +235,120 @@
     font-size: clamp(0.8em, 2.2vw, 0.9em);
   }
 }
+
+/* ---------- Planeta en construcción ---------- */
+/* Un mundo que todavía no existe. La idea es que se lea como una obra en
+   marcha y no como un error: andamios girando alrededor de un núcleo. */
+
+.vista-construccion {
+  background: linear-gradient(180deg, #05030c 0%, #0d0a1c 55%, #141029 100%);
+}
+
+.obra {
+  position: relative;
+  width: min(92%, 640px);
+  max-height: 88vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  padding: 24px 4px;
+}
+
+/* Andamio: dos anillos punteados girando en sentidos opuestos. Se dibujan con
+   bordes, así que no cuesta nada pintarlos. */
+.obra-andamio {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  flex-shrink: 0;
+}
+
+.obra-andamio::before,
+.obra-andamio::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px dashed rgba(213, 200, 242, 0.55);
+}
+
+.obra-andamio::after {
+  inset: 22px;
+  border-width: 2px;
+  border-color: rgba(123, 107, 176, 0.75);
+  animation: girarAndamio 26s linear infinite reverse;
+}
+
+.obra-andamio::before {
+  animation: girarAndamio 38s linear infinite;
+}
+
+@keyframes girarAndamio {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* El núcleo: el planeta a medio hacer, respirando despacio. */
+.obra-nucleo {
+  position: absolute;
+  inset: 42px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #d5c8f2 0%,
+    #7b6bb0 62%,
+    #43356b 100%
+  );
+  box-shadow: 0 0 26px 6px rgba(123, 107, 176, 0.45);
+  animation: latirNucleo 4.5s ease-in-out infinite;
+}
+
+@keyframes latirNucleo {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+.obra-titulo {
+  font-family: var(--font-title);
+  font-size: clamp(1em, 3.4vw, 1.6em);
+  color: #d5c8f2;
+  margin: 0;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.6);
+}
+
+.obra-texto {
+  font-family: var(--font-body);
+  font-size: clamp(0.95em, 2.9vw, 1.25em);
+  line-height: 1.5;
+  color: var(--color-sand);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+.obra-texto p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .obra {
+    gap: 14px;
+    padding: 20px 4px;
+  }
+  .obra-andamio {
+    width: 96px;
+    height: 96px;
+  }
+  .obra-andamio::after {
+    inset: 16px;
+  }
+  .obra-nucleo {
+    inset: 31px;
+  }
+}

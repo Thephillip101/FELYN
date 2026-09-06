@@ -45,10 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Techo del impulso al soltar, en píxeles por segundo. Sin él, un tirón
   // rápido mandaba la cámara lejísimos y se sentía demasiado sensible.
   const VELOCIDAD_MAXIMA = 2400;
-  // Qué tan rápido el zoom real alcanza al zoom pedido.
+  // Qué tan rápido el zoom real alcanza al zoom pedido. Es la fracción de la
+  // diferencia que se recorre en un cuadro DE 60Hz; abajo se convierte a
+  // tiempo real, igual que la fricción. Sin esa conversión, en una pantalla de
+  // 120Hz el zoom se asentaba al doble de rápido que en una de 60Hz.
   const SUAVIDAD_ZOOM = 0.2;
   // Con cuánta fuerza el espacio la trae de vuelta si se fue MUY lejos del
   // contenido. Suave a propósito: es un recordatorio, no una correa.
+  // También va medida por cuadro de 60Hz y se convierte a tiempo real.
   const FUERZA_REGRESO = 0.018;
   // Cuánto más se puede acercar. El tope de alejarse se calcula solo, para
   // que al máximo zoom hacia afuera entre el cúmulo entero en pantalla.
@@ -89,12 +93,33 @@ document.addEventListener("DOMContentLoaded", () => {
   let MUNDO_ANCHO = 0;
   let MUNDO_ALTO = 0;
   let MARGEN_LIBRE = 0;
+  // Con qué lado corto de pantalla se repartió el cúmulo. Si después cambia
+  // mucho, hay que rehacer el reparto contra la pantalla nueva.
+  let BASE_USADA = 0;
   // El centro del universo: ahí va el planeta girasol, y todo lo demás gira
   // a su alrededor.
   const CENTRO = { x: 0, y: 0 };
 
-  const medirUniverso = () => {
+  // Alejarse al máximo debe mostrar el cúmulo COMPLETO rodeado de vacío. Se
+  // mide contra el lado corto de la PANTALLA ACTUAL, así que hay que rehacerlo
+  // cuando ella gira el celular o cambia el tamaño de la ventana: con el valor
+  // viejo, en una pantalla más chica ya no se puede alejar lo suficiente para
+  // ver el cúmulo entero. El 1.35 es el respiro de vacío que lo hace leer como
+  // un cúmulo y no como una pantalla llena.
+  const recalcularEscalaMinima = () => {
     const base = Math.min(window.innerWidth, window.innerHeight);
+    ESCALA_MIN = Math.max(0.05, base / 2 / (RADIO_EXTERNO * 1.35));
+  };
+
+  const medirUniverso = () => {
+    // El piso de 320 es un seguro, no un capricho: si la pantalla todavía
+    // reporta 0 (pasa al abrir la página en una pestaña de fondo, al volver
+    // del historial o justo durante un giro), sin él RADIO_EXTERNO queda en 0,
+    // ESCALA_MIN sale NaN y el universo entero queda en negro PARA SIEMPRE,
+    // sin un solo error en la consola. Con el piso siempre hay algo dibujado,
+    // y en cuanto llega el tamaño de verdad se rehace el reparto solo.
+    const base = Math.max(320, Math.min(window.innerWidth, window.innerHeight));
+    BASE_USADA = base;
     // El anillo interno deja aire alrededor del sol (con el anillo pegado al
     // centro, esa zona se veía saturada); de ahí para afuera el disco crece
     // generoso con cada mensaje nuevo, para que el cielo no se sienta
@@ -112,16 +137,19 @@ document.addEventListener("DOMContentLoaded", () => {
     MUNDO_ALTO = MUNDO_ANCHO;
     CENTRO.x = MUNDO_ANCHO / 2;
     CENTRO.y = MUNDO_ALTO / 2;
-    // Alejarse al máximo debe mostrar el cúmulo COMPLETO rodeado de vacío. Se
-    // mide contra el lado corto para que entre en ambos sentidos, y el 1.35
-    // es el respiro de vacío que lo hace leer como un cúmulo y no como una
-    // pantalla llena.
-    ESCALA_MIN = Math.max(0.05, base / 2 / (RADIO_EXTERNO * 1.35));
+    recalcularEscalaMinima();
     // Al entrar tiene que verse el sol con el primer anillo de estrellas
     // alrededor, no el sol solo en medio de la nada.
     ESCALA_INICIAL = base / 2 / (RADIO_INTERNO * 1.35);
     ESCALA_ENTRADA = ESCALA_INICIAL * 1.95;
   };
+
+  // Convierte una fracción pensada "por cuadro a 60Hz" en la fracción
+  // equivalente para el tiempo que de verdad pasó. Es la misma idea que ya se
+  // usaba para la fricción: sin esto, el movimiento se siente distinto en cada
+  // pantalla según sus hercios, que era parte de la sensación de tosquedad.
+  const porSegundo = (fraccionPorCuadro, dt) =>
+    1 - Math.pow(1 - fraccionPorCuadro, dt * 60);
 
   const camara = { x: 0, y: 0, escala: 1 };
   const posNave = { x: 0, y: 0 };
@@ -129,6 +157,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const anclaZoom = { x: 0, y: 0 };
   let tiempoUltimoMovimiento = 0;
   let recorridoDelGesto = 0;
+  // Tamaño de pantalla del cuadro anterior. Hace falta guardarlo porque cuando
+  // llega el evento de "cambió el tamaño", window.innerWidth ya trae el valor
+  // NUEVO, y para saber qué estaba mirando hay que hacer la cuenta con el viejo.
+  let anchoPantalla = window.innerWidth;
+  let altoPantalla = window.innerHeight;
 
   // Un tirón muy brusco puede dar velocidades enormes y la cámara sale
   // disparada media pantalla. Se le pone techo.
@@ -236,7 +269,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   enterButton.addEventListener("click", handlePasswordEntry);
-  passwordInput.addEventListener("keypress", (e) => {
+  // "keydown" y no "keypress": keypress está obsoleto y hay teclados (sobre
+  // todo de celular) que no lo disparan. Esta es la única puerta de entrada al
+  // regalo entero, así que conviene que sea la más confiable.
+  passwordInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") handlePasswordEntry();
   });
 
@@ -332,8 +368,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tipo: "planeta",
         dato,
         // El del centro es mucho más grande, así que necesita más espacio
-        // libre alrededor.
-        radio: dato.centro ? 230 : 115,
+        // libre alrededor. Los demás reservan espacio en proporción a su
+        // tamaño, para que un planeta grande no quede encima de las estrellas.
+        radio: dato.centro ? 230 : 115 * (dato.tamano || 1),
         // El planeta marcado como centro se queda clavado ahí: ni se reparte
         // al azar, ni orbita, ni lo mueven los empujones de separación.
         fijo: !!dato.centro,
@@ -457,14 +494,25 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         el.style.zIndex = String(Math.round(profundidad * 8) + 1);
       } else {
-        el.className = "planeta" + (fijo ? " planeta-centro" : "");
+        el.className =
+          "planeta" +
+          (fijo ? " planeta-centro" : "") +
+          (dato.enObra ? " planeta-obra" : "");
         el.style.setProperty("--color-principal", dato.colorPrincipal);
         el.style.setProperty("--color-secundario", dato.colorSecundario);
         // El del centro va grande y nítido siempre: es el corazón del universo.
-        el.style.setProperty("--escala", fijo ? "3.2" : (0.7 + profundidad * 0.8).toFixed(2));
-        el.style.setProperty("--desenfoque", fijo ? "0px" : ((1 - profundidad) * 0.7).toFixed(2) + "px");
-        if (fijo) el.style.setProperty("--brillo", "1");
-        el.style.zIndex = String(fijo ? 12 : Math.round(profundidad * 8) + 2);
+        // Un planeta con "tamano" propio manda sobre el tamaño por profundidad,
+        // y va nítido y por delante: si es grande, es porque se tiene que ver.
+        const escalaPropia = fijo ? 3.2 : dato.tamano || 0.7 + profundidad * 0.8;
+        el.style.setProperty("--escala", escalaPropia.toFixed(2));
+        el.style.setProperty(
+          "--desenfoque",
+          fijo || dato.tamano ? "0px" : ((1 - profundidad) * 0.7).toFixed(2) + "px"
+        );
+        if (fijo || dato.tamano) el.style.setProperty("--brillo", "1");
+        el.style.zIndex = String(
+          fijo ? 12 : dato.tamano ? 11 : Math.round(profundidad * 8) + 2
+        );
 
         const nombre = document.createElement("span");
         nombre.className = "planeta-nombre";
@@ -508,6 +556,37 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  // Vuelve a repartir el cúmulo contra la pantalla nueva, SIN recrear nada:
+  // se actualizan las coordenadas de los cuerpos que ya existen. Como las
+  // posiciones se calculan desde el id, cada estrella cae en SU lugar del disco
+  // nuevo, no en uno al azar, y lo ya visitado sigue visitado.
+  const reubicarCuerpos = () => {
+    const nuevos = new Map(repartirCuerpos().map((c) => [c.dato.id, c]));
+
+    cuerpos.forEach((registro) => {
+      const nuevo = nuevos.get(registro.dato.id);
+      if (!nuevo) return;
+      const distancia = Math.max(
+        1,
+        Math.hypot(nuevo.x - CENTRO.x, nuevo.y - CENTRO.y)
+      );
+      registro.x = nuevo.x;
+      registro.y = nuevo.y;
+      registro.distancia = registro.fijo ? 0 : distancia;
+      registro.angulo = Math.atan2(nuevo.y - CENTRO.y, nuevo.x - CENTRO.x);
+      registro.velocidadAngular = registro.fijo
+        ? 0
+        : VELOCIDAD_ORBITA / distancia;
+      // Obliga al pintado a reescribir --pos aunque el cuerpo esté fuera de
+      // pantalla: si no, al volver a entrar aparecería en su sitio viejo.
+      registro.fueraDeVista = true;
+    });
+
+    mundo.style.width = MUNDO_ANCHO + "px";
+    mundo.style.height = MUNDO_ALTO + "px";
+    calcularLimites();
+  };
+
   // Hasta dónde puede alejarse del centro antes de que el espacio la traiga
   // de vuelta. Es un círculo, no un rectángulo, porque el contenido también
   // está repartido en disco: así el límite se siente igual en toda dirección.
@@ -520,7 +599,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // ---------- Bucle principal ----------
+  // Cada tanto se comprueba que la pantalla siga midiendo lo mismo. No alcanza
+  // con escuchar "resize": si la ventana ya tenía otro tamaño ANTES de que se
+  // registrara el oyente (pasa al restaurar la página desde el historial, o al
+  // abrirla en una pestaña de fondo), ese evento no llega nunca y el cúmulo se
+  // queda repartido para una pantalla que no existe. Con esto se cura solo.
+  let cuadrosHastaRevisar = 0;
+  const CUADROS_ENTRE_REVISIONES = 30;
+
   const bucle = (tiempo, deltaMs) => {
+    if (--cuadrosHastaRevisar <= 0) {
+      cuadrosHastaRevisar = CUADROS_ENTRE_REVISIONES;
+      if (
+        window.innerWidth !== anchoPantalla ||
+        window.innerHeight !== altoPantalla
+      ) {
+        revisarTamanoDePantalla();
+      }
+    }
+
     // Si la pestaña estuvo en segundo plano, delta puede venir enorme; se
     // recorta para que al volver no salte todo de golpe.
     const dt = Math.min(deltaMs, 50) / 1000;
@@ -538,9 +635,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // de elástico peleando con ella.
       centrarEn(CENTRO.x, CENTRO.y);
     } else {
-      suavizarZoom();
+      suavizarZoom(dt);
       aplicarInercia(dt);
-      aplicarRegresoElastico();
+      aplicarRegresoElastico(dt);
       // Durante el vuelo la cámara centra el CUERPO, no la nave: así la
       // estrella queda en el medio y la nave aparcada a un costado.
       if (cuerpoEnfocado) centrarEn(cuerpoEnfocado.x, cuerpoEnfocado.y);
@@ -561,6 +658,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const empezarPaseo = () => {
     modoPaseo = true;
     naveAnclada = null;
+    // Si lleva rato sin tocar nada puede estar perdida: la pista vuelve, tenue
+    // para no molestar, y se apaga sola apenas ella vuelve a tocar la pantalla.
+    gsap.to(pista, { opacity: 0.55, duration: 1.2, ease: "power2.out" });
     // Deambula alrededor de lo que ella está mirando, para no perderse de
     // vista mientras vuela.
     paseo.centro.x = (window.innerWidth / 2 - camara.x) / camara.escala;
@@ -576,6 +676,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const terminarPaseo = () => {
     modoPaseo = false;
+    gsap.to(pista, { opacity: 0, duration: 0.5, ease: "power2.in" });
     gsap.to(propulsor, { opacity: 0, scaleY: 0.3, duration: 0.5, ease: "power2.in" });
     gsap.to(naveCuerpo, { rotation: 0, duration: 0.7, ease: "power2.inOut" });
   };
@@ -608,9 +709,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const suavizarZoom = () => {
+  const suavizarZoom = (dt) => {
     const anterior = camara.escala;
-    camara.escala += (escalaObjetivo - camara.escala) * SUAVIDAD_ZOOM;
+    camara.escala += (escalaObjetivo - camara.escala) * porSegundo(SUAVIDAD_ZOOM, dt);
     if (Math.abs(escalaObjetivo - camara.escala) < 0.0005) {
       camara.escala = escalaObjetivo;
     }
@@ -638,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // En vez de un muro, el espacio la trae de vuelta despacito si se alejó
   // demasiado del contenido. Nunca hay un borde duro que golpear.
-  const aplicarRegresoElastico = () => {
+  const aplicarRegresoElastico = (dt) => {
     if (!limites || arrastrando || cuerpoEnfocado) return;
 
     // A qué punto del mundo está mirando el centro de la pantalla.
@@ -668,13 +769,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Cuanto más lejos se fue, más fuerte tira: es un elástico, no un muro.
     const exceso = lejania - permitido;
-    const tiron = exceso * camara.escala * FUERZA_REGRESO;
+    const tiron = exceso * camara.escala * porSegundo(FUERZA_REGRESO, dt);
     camara.x += (dx / lejania) * tiron;
     camara.y += (dy / lejania) * tiron;
     // Fuera del límite el impulso se apaga un poco más rápido, si no la
     // inercia pelea contra el regreso.
-    velocidad.x *= 0.92;
-    velocidad.y *= 0.92;
+    const frenado = Math.pow(0.92, dt * 60);
+    velocidad.x *= frenado;
+    velocidad.y *= frenado;
   };
 
   const centrarEn = (x, y) => {
@@ -851,7 +953,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const alLlegar = (cuerpo) => {
     if (cuerpo.tipo === "estrella") {
+      const eraNueva = cuerpo.el.classList.contains("nueva");
       cuerpo.el.classList.remove("nueva");
+      // La primera vez que se abre, la estrella destella al soltar su color.
+      // Es el único momento en que eso pasa, así que vale la pena celebrarlo.
+      if (eraNueva) {
+        cuerpo.el.classList.add("revelada");
+        cuerpo.el.addEventListener(
+          "animationend",
+          () => cuerpo.el.classList.remove("revelada"),
+          { once: true }
+        );
+      }
       marcarVisitada(cuerpo.dato.id);
       mostrarMensaje(cuerpo.dato.texto, cuerpo.dato.especial);
     } else {
@@ -964,6 +1077,92 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-volver]").forEach((boton) => {
     boton.addEventListener("click", cerrarVistaActual);
   });
+
+  // ---------- Cambios de pantalla (girar el celular, redimensionar) ----------
+  // El reparto de estrellas NO se rehace: moverlas todas de golpe sería
+  // desconcertante y ella perdería de vista lo que estaba mirando. Lo que sí
+  // se rehace es hasta dónde se puede alejar y qué punto del mundo queda
+  // centrado, que es lo que de verdad depende del tamaño de la pantalla.
+  const alCambiarPantalla = () => {
+    if (anchoPantalla === window.innerWidth && altoPantalla === window.innerHeight) {
+      return;
+    }
+    // Qué zona del mundo estaba mirando, guardada como dirección + fracción
+    // del radio del cúmulo. Guardarla así (y no en píxeles) permite dejarla
+    // mirando el mismo lugar aunque el disco entero cambie de tamaño.
+    const miradaX = (anchoPantalla / 2 - camara.x) / camara.escala;
+    const miradaY = (altoPantalla / 2 - camara.y) / camara.escala;
+    const haciaX = miradaX - CENTRO.x;
+    const haciaY = miradaY - CENTRO.y;
+    const anguloMirada = Math.atan2(haciaY, haciaX);
+    const fraccionMirada = RADIO_EXTERNO
+      ? Math.hypot(haciaX, haciaY) / RADIO_EXTERNO
+      : 0;
+    // Dónde estaba la nave respecto del centro, por si no está amarrada a nada.
+    const naveHaciaX = posNave.x - CENTRO.x;
+    const naveHaciaY = posNave.y - CENTRO.y;
+
+    anchoPantalla = window.innerWidth;
+    altoPantalla = window.innerHeight;
+
+    // El disco se mide contra el lado corto de la pantalla. Girar un celular
+    // no lo cambia (el lado corto sigue siendo el mismo), así que ahí no hay
+    // nada que rehacer; agrandar la ventana en el computador sí.
+    const nuevaBase = Math.max(320, Math.min(anchoPantalla, altoPantalla));
+    const cambioMucho =
+      !BASE_USADA || Math.abs(nuevaBase - BASE_USADA) / BASE_USADA > 0.25;
+
+    if (cambioMucho) {
+      medirUniverso();
+      reubicarCuerpos();
+      if (!naveAnclada) {
+        posNave.x = CENTRO.x + naveHaciaX;
+        posNave.y = CENTRO.y + naveHaciaY;
+      }
+    } else {
+      recalcularEscalaMinima();
+    }
+
+    // En una pantalla más chica el tope de alejarse sube, y el zoom que tenía
+    // puede quedar por debajo del nuevo mínimo.
+    escalaObjetivo = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, escalaObjetivo));
+    camara.escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, camara.escala));
+
+    // Vuelve a dejar en el centro la zona que estaba mirando, para que girar
+    // el celular no la deje mirando el vacío.
+    centrarEn(
+      CENTRO.x + Math.cos(anguloMirada) * fraccionMirada * RADIO_EXTERNO,
+      CENTRO.y + Math.sin(anguloMirada) * fraccionMirada * RADIO_EXTERNO
+    );
+    anclaZoom.x = window.innerWidth / 2;
+    anclaZoom.y = window.innerHeight / 2;
+  };
+
+  // Se espera a que el navegador termine de acomodar la pantalla: al girar un
+  // celular llegan varios eventos seguidos y las medidas del primero suelen
+  // estar a medio camino, así que cada evento reinicia la espera.
+  let esperaDeCambio = null;
+  const programarCambioDePantalla = () => {
+    clearTimeout(esperaDeCambio);
+    esperaDeCambio = setTimeout(ejecutarCambioDePantalla, 180);
+  };
+
+  // La que llama el bucle. A diferencia de la de arriba, NO reinicia una espera
+  // que ya esté corriendo: el bucle vuelve a pasar por acá cada 30 cuadros, y
+  // en una pantalla rápida eso es menos de 180 ms, así que reiniciándola la
+  // espera no vencía nunca y el ajuste no llegaba jamás.
+  const revisarTamanoDePantalla = () => {
+    if (esperaDeCambio !== null) return;
+    esperaDeCambio = setTimeout(ejecutarCambioDePantalla, 180);
+  };
+
+  const ejecutarCambioDePantalla = () => {
+    esperaDeCambio = null;
+    alCambiarPantalla();
+  };
+
+  window.addEventListener("resize", programarCambioDePantalla);
+  window.addEventListener("orientationchange", programarCambioDePantalla);
 
   // ---------- Controles (mouse, dedo y rueda: todo con Pointer Events) ----------
   const pedirZoom = (factor, centroX, centroY) => {

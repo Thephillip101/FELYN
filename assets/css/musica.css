@@ -62,3 +62,72 @@
     color: rgba(255, 255, 255, 0.6);
   }
 }
+
+/* Botón del menú de canciones: se enciende mientras la lista está abierta,
+   para que se vea que está desplegada. */
+.musica-boton.activo {
+  color: var(--color-golden);
+}
+
+/* Menú de canciones: se despliega hacia arriba desde la esquina, encima del
+   cielo. La barra es "position: fixed", así que sirve de referencia. */
+.musica-lista {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  min-width: 190px;
+  max-width: min(78vw, 320px);
+  /* Si algún día hay muchas canciones, la lista tiene su propio scroll en vez
+     de crecer hasta salirse de la pantalla. */
+  max-height: min(52vh, 340px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(0, 0, 0, 0.94);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.musica-opcion {
+  font-family: var(--font-body);
+  font-size: 0.95em;
+  text-align: left;
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  /* Los títulos largos no deben ensanchar el menú ni cortarse a la mitad. */
+  white-space: normal;
+  line-height: 1.3;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.musica-opcion:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-sand);
+}
+
+/* La que está sonando ahora mismo. */
+.musica-opcion.sonando {
+  color: var(--color-golden);
+}
+
+.musica-opcion.sonando::before {
+  content: "♪ ";
+}
+
+@media (max-width: 768px) {
+  .musica-lista {
+    min-width: 168px;
+    padding: 5px;
+  }
+  .musica-opcion {
+    font-size: 0.88em;
+    /* Un poco más alto para que el dedo no falle. */
+    padding: 11px 12px;
+  }
+}

@@ -193,6 +193,36 @@
     scale(calc(var(--escala, 1) * var(--lente, 1) * 1.5));
 }
 
+/* Respuesta inmediata al tocar: la nave tarda más de un segundo en llegar, y
+   sin esto en un celular (donde no hay hover) el toque no acusa recibo y da la
+   sensación de que la estrella no respondió. */
+.estrella:active {
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%)
+    scale(calc(var(--escala, 1) * var(--lente, 1) * 1.9));
+}
+
+/* Fogonazo del momento en que una estrella revela su color. Toca solo
+   box-shadow y filter, nunca transform: el bucle reescribe --pos en cada
+   cuadro y una animación sobre transform pelearía con él. */
+.estrella.revelada {
+  animation: revelar 1.1s ease-out;
+}
+
+@keyframes revelar {
+  0% {
+    box-shadow: 0 0 8px 2px var(--color-estrella);
+    filter: brightness(var(--brillo, 1)) blur(var(--desenfoque, 0px));
+  }
+  30% {
+    box-shadow: 0 0 36px 15px var(--color-estrella);
+    filter: brightness(calc(var(--brillo, 1) * 2.1)) blur(0px);
+  }
+  100% {
+    box-shadow: 0 0 8px 2px var(--color-estrella);
+    filter: brightness(calc(var(--brillo, 1) * 0.8)) blur(var(--desenfoque, 0px));
+  }
+}
+
 /* El titileo va por brillo y no por opacidad, porque la opacidad ya la usa
    el efecto lente y una animación CSS le ganaría. El desenfoque y el brillo
    propio de cada estrella (--brillo, más bajo cuanto más lejos del centro del
@@ -281,6 +311,11 @@
     scale(calc(var(--escala, 1) * var(--lente, 1) * 1.12));
 }
 
+.planeta:active {
+  transform: translate(var(--pos, 0, 0)) translate(-50%, -50%)
+    scale(calc(var(--escala, 1) * var(--lente, 1) * 1.22));
+}
+
 /* El planeta del centro: el corazón del universo, siempre nítido y con un
    halo propio para que se lea como el punto de referencia de todo el mapa. */
 /* Un solo halo y no dos: la sombra de 140px de difuminado con 50px de
@@ -320,6 +355,15 @@
 
 .planeta:hover .planeta-nombre {
   opacity: 1;
+}
+
+/* En pantalla táctil NO hay hover: con el nombre atado solo a :hover, en el
+   celular los planetas no mostraban su nombre nunca y ella no tenía forma de
+   saber a cuál estaba llegando. Ahí se muestran siempre, un poco más tenues. */
+@media (hover: none) {
+  .planeta-nombre {
+    opacity: 0.78;
+  }
 }
 
 .pista {
@@ -438,4 +482,26 @@
     /* Deja libre la franja de abajo, donde vive el reproductor. */
     bottom: 76px;
   }
+}
+
+/* Planeta en obra: andamios girando a su alrededor. Reemplaza la "atmósfera"
+   normal del ::after por un anillo punteado, que es lo que lo hace leer como
+   algo a medio construir y no como un planeta más. */
+.planeta-obra::after {
+  inset: -14%;
+  background: none;
+  border: 3px dashed color-mix(in srgb, var(--color-secundario) 75%, transparent);
+  border-radius: 50%;
+  animation: girarAtmosfera 30s linear infinite;
+  opacity: 0.9;
+}
+
+/* Un segundo anillo, girando al revés, para que se note que está en obra
+   aunque se mire de lejos. */
+.planeta-obra::before {
+  border: 2px dashed color-mix(in srgb, var(--color-principal) 65%, transparent);
+  /* OJO: el ::before es además la zona de toque agrandada (inset: -28px en la
+     regla de arriba). Acá solo se le pinta el borde; el inset no se toca para
+     no achicar el área que responde al dedo. */
+  animation: girarAtmosfera 44s linear infinite reverse;
 }

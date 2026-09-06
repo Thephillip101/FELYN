@@ -6,6 +6,9 @@ You fly a small plane around a cluster of stars. Every star holds a note I wrote
 and every planet is a birthday. The sunflower planet sits in the middle and everything
 else drifts slowly around it.
 
+There's also a big one still under construction, so it's obvious the place keeps
+growing.
+
 Password to get in: `KIWWA`
 
 ## Running it
@@ -39,6 +42,7 @@ assets/js/mapa.js           the engine: camera, orbits, the plane, the messages
 assets/js/musica.js         the player
 assets/js/vistaGirasol.js   the sunflower planet
 assets/js/vistaFrio.js      the "Por descubrir" planet
+assets/js/vistaConstruccion.js  the one still being built
 assets/images/              petals and comic panels
 assets/audio/               songs
 planeta-girasol-original/   the first sunflower project, kept as it was
@@ -69,9 +73,14 @@ Adding `especial: true` gives the note the gold frame.
 
 Drop the file in `assets/audio/` and add a block in `playlist.js` with a new id.
 
-The first one on the list always plays when the universe opens. The rest come out
-shuffled and don't repeat until they've all played, so whatever I want it to open with
-goes on top.
+The order is completely random now — the whole list gets shuffled every round, so any
+song can be the one that opens the universe. Within a round nothing repeats until
+everything has played, and a song never plays twice in a row across rounds.
+
+She can also pick one herself: the **♫** button next to the player opens the list.
+That means `titulo` is on screen now, so it should be the song's real name, not
+"Canción 3". The menu builds itself from `playlist.js`, so a new song shows up there
+on its own.
 
 ## The panels on "Por descubrir"
 
@@ -90,8 +99,22 @@ To build the inside: make an `assets/js/vistaWhatever.js` that calls
 `registrarVistaPlaneta("whatever", { abrir, cerrar })`, add its
 `<div id="vista-whatever">` to `index.html`, and set `vista: "whatever"`.
 
+Two optional fields:
+
+- `tamano` — 1 is a normal planet. Higher makes it bigger, keeps it sharp, and
+  reserves proportionally more empty space around it so it never sits on top of a star.
+- `enObra: true` — draws dashed scaffolding rings spinning around it. That's the
+  "still being built" look.
+
 Only one planet gets `centro: true`. That one stays pinned in the middle and doesn't
 orbit — right now it's the sunflower.
+
+## When the building one is finished
+
+The `En construcción` planet is a placeholder on purpose. To turn it into a real
+world: write its view, point `vista` at it, and drop `enObra` and `tamano` from
+its block in `cumpleanos.js`. Then add a new placeholder, so there's always something
+left to find.
 
 ## Tuning how it feels
 
@@ -118,6 +141,42 @@ comment. Change one, reload, see how it sits.
 The size of the space is set in `medirUniverso()`. The `0.5` in `RADIO_EXTERNO` is how
 much the disc grows per note — raise it if the sky ever feels crowded.
 
+## Putting changes online
+
+Edit whatever I want, check it with Live Server, and then, from the project folder:
+
+```bash
+git add -A
+```
+
+```bash
+git commit -m "a short line saying what I changed"
+```
+
+```bash
+git push
+```
+
+That's it. GitHub Pages rebuilds on its own and the site is updated in a minute or two,
+same link as always. If the page still looks old after that, it's the browser cache —
+`Ctrl + F5`.
+
+To see what I'm about to send before sending it:
+
+```bash
+git status --short
+```
+
+`M` means modified, `A` new, `D` deleted, `??` not being tracked yet.
+
+If I break something and want to go back to the last version that was online:
+
+```bash
+git checkout -- .
+```
+
+That throws away every change I haven't committed yet, so only when I'm sure.
+
 ## Things not to break
 
 - **`nota-061` is encrypted.** Not one letter, not one space.
@@ -127,6 +186,11 @@ much the disc grows per note — raise it if the sky ever feels crowded.
   so nothing is duplicated. The sunflower that runs inside the universe is a separate
   file, `assets/js/vistaGirasol.js`.
 - **Don't rename note ids** once they're online (see above).
+- **Nothing that moves gets a `transition` on `transform`.** The loop rewrites the
+  position every frame, so the transition restarts forever and the body never arrives.
+- **Anything measured per frame has to be converted to real time.** Friction, zoom
+  easing and the elastic pull all do this. Skip it and the whole thing feels different
+  on a 120Hz screen than on a 60Hz one.
 - Which stars have been visited is stored in the browser's `localStorage`, per device.
   Her phone and her laptop each keep their own count.
 
