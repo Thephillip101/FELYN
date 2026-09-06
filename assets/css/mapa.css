@@ -237,18 +237,35 @@
   }
 }
 
-/* Sin visitar: todas iguales, turquesa y pulsando — su color propio todavía
-   es un secreto. */
+/* Sin visitar: turquesa y con un aro que sale despedido hacia afuera, como una
+   señal de "acá hay algo sin abrir". El aro es lo que las hace distinguibles de
+   un golpe de vista: antes la única diferencia era el color, y con el cielo
+   lleno de estrellas de todos los colores costaba ver cuáles faltaban.
+   Su color propio sigue siendo un secreto hasta que la visita.
+
+   El aro se mueve por transform y opacity, que el navegador compone sin
+   repintar. La sombra ya NO se anima: eran sesenta y pico de box-shadow
+   latiendo a la vez, de lo más caro que hay para pintar. */
 .estrella.nueva {
   background: var(--color-turquoise-light);
-  box-shadow: 0 0 10px 4px rgba(69, 162, 158, 0.85);
-  animation: pulso var(--pulso, 1.6s) infinite ease-in-out;
+  box-shadow: 0 0 12px 4px rgba(69, 162, 158, 0.9);
+}
+
+.estrella.nueva::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-turquoise-light);
+  pointer-events: none;
+  animation: aviso var(--pulso, 1.6s) infinite ease-out;
   animation-delay: var(--retraso, 0s);
 }
 
-@keyframes pulso {
-  0%, 100% { box-shadow: 0 0 8px 3px rgba(69, 162, 158, 0.7); }
-  50% { box-shadow: 0 0 18px 7px rgba(69, 162, 158, 1); }
+@keyframes aviso {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  70% { opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
 }
 
 /* Planetas: cada cumpleaños repartido libremente por el mundo, con un

@@ -34,9 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Ajustes de sensación (tocar estos números cambia el "feel") ----------
   // Cuánto tarda la nave en llegar a lo que tocas.
   const DURACION_VUELO = 1.4;
-  // Velocidad de la deriva orbital, en píxeles por segundo. Muy lenta a
-  // propósito: da vida sin estorbar cuando ella quiere tocar algo.
-  const VELOCIDAD_ORBITA = 4;
+  // Velocidad de la deriva orbital, en píxeles del MUNDO por segundo. Ojo con
+  // el número: en pantalla se ve multiplicado por el zoom, así que a la escala
+  // de entrada (~0.6) un valor de 4 daban 2.4 px/s reales y una estrella
+  // tardaba cinco segundos en moverse su propio ancho — o sea, se veía quieto.
+  // Con 14 una estrella se corre su ancho en un segundo y medio: se nota que
+  // el cielo está vivo sin que estorbe para apuntarle.
+  const VELOCIDAD_ORBITA = 14;
   // Qué fracción del impulso queda después de UN SEGUNDO al soltar el
   // arrastre (más alto = patina más). Se mide por segundo y no por cuadro:
   // si no, en una pantalla de 120Hz el impulso se apaga al doble de rápido
@@ -1102,6 +1106,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const naveHaciaX = posNave.x - CENTRO.x;
     const naveHaciaY = posNave.y - CENTRO.y;
 
+    // Cuánto cambió la FORMA de la pantalla. Girar el celular la cambia
+    // muchísimo; que el navegador esconda su barra de direcciones, casi nada.
+    const aspectoAntes = altoPantalla ? anchoPantalla / altoPantalla : 1;
+    const aspectoAhora = window.innerHeight
+      ? window.innerWidth / window.innerHeight
+      : 1;
+    const giro = Math.abs(Math.log(aspectoAhora / aspectoAntes)) > 0.25;
+
     anchoPantalla = window.innerWidth;
     altoPantalla = window.innerHeight;
 
@@ -1128,14 +1140,19 @@ document.addEventListener("DOMContentLoaded", () => {
     escalaObjetivo = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, escalaObjetivo));
     camara.escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, camara.escala));
 
-    // Vuelve a dejar en el centro la zona que estaba mirando, para que girar
-    // el celular no la deje mirando el vacío.
-    centrarEn(
-      CENTRO.x + Math.cos(anguloMirada) * fraccionMirada * RADIO_EXTERNO,
-      CENTRO.y + Math.sin(anguloMirada) * fraccionMirada * RADIO_EXTERNO
-    );
-    anclaZoom.x = window.innerWidth / 2;
-    anclaZoom.y = window.innerHeight / 2;
+    // Solo se reencuadra si de verdad hace falta: al girar el celular o
+    // cuando se rehizo el reparto. En el celular la altura cambia sola cada vez
+    // que el navegador esconde o muestra su barra de direcciones, y reencuadrar
+    // por eso movía el cielo de golpe bajo el dedo, como si saltara la
+    // ubicación. Ante un cambio chico, lo correcto es no tocar nada.
+    if (giro || cambioMucho) {
+      centrarEn(
+        CENTRO.x + Math.cos(anguloMirada) * fraccionMirada * RADIO_EXTERNO,
+        CENTRO.y + Math.sin(anguloMirada) * fraccionMirada * RADIO_EXTERNO
+      );
+      anclaZoom.x = window.innerWidth / 2;
+      anclaZoom.y = window.innerHeight / 2;
+    }
   };
 
   // Se espera a que el navegador termine de acomodar la pantalla: al girar un
@@ -1177,6 +1194,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const finalizarPuntero = (e) => {
     punterosActivos.delete(e.pointerId);
     if (punterosActivos.size < 2) distanciaPinchAnterior = null;
+
+    // Al levantar un dedo después de un pellizco queda el otro apoyado, pero
+    // "ultimoPuntero" sigue guardando dónde estaba el dedo ANTES del pellizco:
+    // mientras hay dos dedos el manejador de movimiento sale antes de
+    // actualizarlo. El primer movimiento posterior calculaba el recorrido
+    // entero del gesto y se lo daba a la cámara de un golpe: eso era el tirón
+    // al jugar con el zoom en el celular. Se resincroniza con el dedo que queda.
+    if (punterosActivos.size === 1) {
+      const queda = [...punterosActivos.values()][0];
+      ultimoPuntero = { x: queda.x, y: queda.y };
+      recorridoDelGesto = 0;
+      velocidad.x = 0;
+      velocidad.y = 0;
+      tiempoUltimoMovimiento = performance.now();
+    }
+
     if (punterosActivos.size === 0) {
       arrastrando = false;
       // Si frenó y sostuvo antes de soltar, no debe salir volando: ese gesto

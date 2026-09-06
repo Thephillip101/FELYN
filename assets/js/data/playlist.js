@@ -7,28 +7,33 @@
 // Para agregar otra: copia el archivo de audio a assets/audio/ y suma un
 // bloque como estos. El id debe ser único.
 //
-// OJO con "titulo": ahora SÍ se ve en pantalla, en el menú de canciones que
-// ella abre con el botón ♫. Ponle el nombre de verdad de cada canción.
+// "titulo" y "artista" SÍ se ven en pantalla, en el menú de canciones que ella
+// abre con el botón ♫. "artista" es opcional: si falta, solo se muestra el
+// título.
 
 const playlist = [
   {
     id: "pista-001",
-    titulo: "Canción 1",
+    titulo: "La increíble historia del hombre que podía volar pero no sabía cómo",
+    artista: "Izal",
     archivo: "assets/audio/song_01.mp3",
   },
   {
     id: "pista-002",
-    titulo: "Canción 2",
+    titulo: "Fruta y té",
+    artista: "Gepe",
     archivo: "assets/audio/song_02.mp3",
   },
   {
     id: "pista-003",
-    titulo: "Canción 3",
+    titulo: "Flaca",
+    artista: "Nanpa Básico",
     archivo: "assets/audio/song_03.mp3",
   },
   {
     id: "pista-004",
-    titulo: "Canción 4",
+    titulo: "Bésame sin sentir",
+    artista: "Micro TDH",
     archivo: "assets/audio/song_04.mp3",
   },
 ];

@@ -144,7 +144,20 @@ document.addEventListener("DOMContentLoaded", () => {
     opciones = playlist.map((pista, i) => {
       const opcion = document.createElement("button");
       opcion.className = "musica-opcion";
-      opcion.textContent = pista.titulo;
+
+      const titulo = document.createElement("span");
+      titulo.className = "musica-opcion-titulo";
+      titulo.textContent = pista.titulo;
+      opcion.appendChild(titulo);
+
+      // El artista es opcional: si no está, la opción es solo el título.
+      if (pista.artista) {
+        const artista = document.createElement("span");
+        artista.className = "musica-opcion-artista";
+        artista.textContent = pista.artista;
+        opcion.appendChild(artista);
+      }
+
       opcion.addEventListener("click", (e) => {
         e.stopPropagation();
         irAPista(i);

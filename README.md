@@ -78,9 +78,9 @@ song can be the one that opens the universe. Within a round nothing repeats unti
 everything has played, and a song never plays twice in a row across rounds.
 
 She can also pick one herself: the **♫** button next to the player opens the list.
-That means `titulo` is on screen now, so it should be the song's real name, not
-"Canción 3". The menu builds itself from `playlist.js`, so a new song shows up there
-on its own.
+`titulo` and `artista` are both on screen there, so they need to be the real names —
+`artista` is optional and the option just shows the title without it. The menu builds
+itself from `playlist.js`, so a new song shows up there on its own.
 
 ## The panels on "Por descubrir"
 
@@ -124,7 +124,7 @@ comment. Change one, reload, see how it sits.
 | | |
 | --- | --- |
 | `DURACION_VUELO` | how long the plane takes to arrive |
-| `VELOCIDAD_ORBITA` | how fast everything drifts around the centre |
+| `VELOCIDAD_ORBITA` | how fast everything drifts around the centre. It's world pixels per second, and the screen shows it multiplied by the zoom — at the opening zoom it looks about 60% as fast |
 | `FRICCION_POR_SEGUNDO` | how much the sky keeps gliding after you let go |
 | `VELOCIDAD_MAXIMA` | cap on the fling. Lower it if dragging feels twitchy |
 | `SUAVIDAD_ZOOM` | how gently the zoom settles |
