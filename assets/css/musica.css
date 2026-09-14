@@ -1,0 +1,158 @@
+/* Barra de música: tres botones sueltos abajo a la derecha, sin fondo, para
+   que se fundan con el cielo y no parezcan una caja pegada encima. */
+.reproductor {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  z-index: 300;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.musica-boton {
+  font-family: var(--font-body);
+  font-size: 1.05em;
+  line-height: 1;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  /* Apagados hasta que ella los busca, para no robar atención al cielo. */
+  color: rgba(255, 255, 255, 0.45);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  /* Sin esto, al arrastrar sobre un botón el navegador se lleva el símbolo
+     como si fuera una imagen, y queda "pegado" al cursor. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.musica-boton:hover {
+  color: var(--color-golden);
+  transform: scale(1.15);
+}
+
+.musica-boton:focus {
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .reproductor {
+    bottom: 12px;
+    right: 12px;
+    gap: 4px;
+  }
+
+  .musica-boton {
+    width: 34px;
+    height: 34px;
+    /* En pantalla táctil no hay hover, así que se ven un poco más presentes. */
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* Botón del menú de canciones: se enciende mientras la lista está abierta,
+   para que se vea que está desplegada. */
+.musica-boton.activo {
+  color: var(--color-golden);
+}
+
+/* Menú de canciones: se despliega hacia arriba desde la esquina, encima del
+   cielo. La barra es "position: fixed", así que sirve de referencia. */
+.musica-lista {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  max-width: min(82vw, 340px);
+  /* Si algún día hay muchas canciones, la lista tiene su propio scroll en vez
+     de crecer hasta salirse de la pantalla. */
+  max-height: min(52vh, 340px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(0, 0, 0, 0.94);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.musica-opcion {
+  font-family: var(--font-body);
+  font-size: 0.95em;
+  text-align: left;
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  /* Los títulos largos no deben ensanchar el menú ni cortarse a la mitad. */
+  white-space: normal;
+  line-height: 1.3;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+/* El artista va debajo y más apagado: el título manda. */
+.musica-opcion-artista {
+  font-size: 0.82em;
+  opacity: 0.55;
+}
+
+.musica-opcion:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-sand);
+}
+
+/* La que está sonando ahora mismo. */
+.musica-opcion.sonando {
+  color: var(--color-golden);
+}
+
+.musica-opcion.sonando .musica-opcion-titulo::before {
+  content: "♪ ";
+}
+
+@media (max-width: 768px) {
+  .musica-lista {
+    /* Los titulos de verdad son largos; con menos ancho parten en demasiadas
+       lineas y el menu se estira hacia arriba sin necesidad. */
+    min-width: 210px;
+    padding: 5px;
+  }
+  .musica-opcion {
+    font-size: 0.88em;
+    /* Un poco más alto para que el dedo no falle. */
+    padding: 11px 12px;
+  }
+}
+
+/* El navegador se negó a arrancar la música sola (pasa sobre todo en iPhone).
+   El botón se enciende y late para que se vea que hay música esperando, en vez
+   de que el universo se abra mudo sin explicación. */
+.musica-boton.pendiente {
+  color: var(--color-golden);
+  animation: latidoBoton 1.8s ease-in-out infinite;
+}
+
+@keyframes latidoBoton {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.18); }
+}

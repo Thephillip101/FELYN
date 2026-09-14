@@ -1,0 +1,23 @@
+{
+  "name": "Universo FELYN",
+  "short_name": "FELYN",
+  "description": "Un universo hecho a mano para Josselyn.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#0a0a18",
+  "theme_color": "#0a0a18",
+  "icons": [
+    {
+      "src": "assets/images/icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/images/icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

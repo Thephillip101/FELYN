@@ -1,0 +1,136 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400..700&display=swap");
+
+:root {
+  --color-dark-blue: #1a1a2e;
+  --color-medium-blue: #0f3460;
+  --color-turquoise-light: #45a29e;
+  --color-turquoise-dark: #008080;
+  --color-golden: #ffd700;
+  --color-warm-yellow: #ffff00;
+  --color-sand: #ffffff;
+  --color-red-error: #ff0000;
+  --font-title: "Press Start 2P", cursive;
+  --font-body: "Pixelify Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  font-family: var(--font-body);
+  color: var(--color-sand);
+  background-color: var(--color-dark-blue);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Pantalla de clave (misma lógica y estilo del proyecto original) */
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #000000 0%, #08081a 50%, #0f1a30 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.splash-text {
+  font-family: var(--font-title);
+  font-size: clamp(1.2em, 4vw, 2.5em);
+  margin: 10px 20px;
+  opacity: 0;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+}
+
+.password-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  z-index: 1001;
+}
+
+#password-input {
+  font-family: var(--font-body);
+  font-size: clamp(1em, 3vw, 1.5em);
+  padding: 8px 12px;
+  background-color: var(--color-medium-blue);
+  border: none;
+  color: var(--color-sand);
+  text-align: center;
+  outline: none;
+  text-transform: uppercase;
+  caret-color: var(--color-golden);
+}
+
+#password-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+#enter-button {
+  font-family: var(--font-title);
+  font-size: clamp(1em, 3vw, 1.5em);
+  padding: 10px 20px;
+  background-color: var(--color-golden);
+  border: none;
+  color: var(--color-dark-blue);
+  cursor: pointer;
+  transition: all 0.1s steps(1);
+}
+
+#enter-button:hover {
+  background-color: var(--color-warm-yellow);
+  transform: translate(2px, 2px);
+}
+
+.password-hint {
+  font-family: var(--font-body);
+  font-size: clamp(0.8em, 2.5vw, 1.2em);
+  color: var(--color-turquoise-light);
+  margin-top: 5px;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+}
+
+.password-error {
+  font-family: var(--font-title);
+  font-size: clamp(0.9em, 2.8vw, 1.3em);
+  color: var(--color-red-error);
+  margin-top: 5px;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  z-index: 1001;
+}
+
+@media (max-width: 768px) {
+  .splash-text {
+    font-size: clamp(1em, 3vw, 1.5em);
+  }
+  #password-input,
+  #enter-button {
+    font-size: clamp(0.9em, 2.5vw, 1.2em);
+    padding: 6px 10px;
+  }
+  .password-hint,
+  .password-error {
+    font-size: clamp(0.7em, 2vw, 1em);
+  }
+}

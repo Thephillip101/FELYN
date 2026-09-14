@@ -1,0 +1,26 @@
+# OS junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+._*
+
+# Editor stuff
+.vscode/
+.idea/
+.claude/
+
+# Local working notes, not part of the project
+CLAUDE.md
+
+# Temp files
+*.tmp
+*.bak
+*~
+
+# Los textos en claro. Lo que se publica es assets/js/data/cifrado.js, que se
+# genera con "node cifrar.js". Si alguna vez pierdes estos archivos, se
+# recuperan del cifrado con "node cifrar.js --descifrar".
+assets/js/data/mensajes.js
+assets/js/data/cuento.js
+assets/js/data/final.js
