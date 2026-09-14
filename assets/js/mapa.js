@@ -821,12 +821,28 @@ document.addEventListener("DOMContentLoaded", () => {
     paseo.radio = Math.max(140, Math.hypot(dx, dy));
     paseo.angulo = Math.atan2(dy, dx);
     paseo.fase = 0;
+
+    // El radio del paseo salia de donde estuviera la nave al empezar, sin
+    // ningun tope. Si ella se habia alejado arrastrando, la nave se ponia a dar
+    // vueltas a esa distancia enorme y NO se volvia a ver nunca, que es justo
+    // lo contrario de para lo que existe el paseo. Ahora hay un techo: si queda
+    // muy lejos, se acerca en espiral hasta entrar en pantalla.
+    //
+    // El 0.6 deja sitio para el respiro del radio (que crece hasta un 35% mas)
+    // sin que la nave llegue a rozar el borde.
+    const mitadCorta = Math.min(window.innerWidth, window.innerHeight) / 2;
+    const tope = Math.max(140, (mitadCorta / camara.escala) * 0.6);
+    if (paseo.radio > tope) {
+      gsap.killTweensOf(paseo);
+      gsap.to(paseo, { radio: tope, duration: 1.8, ease: "power2.inOut" });
+    }
     gsap.to(propulsor, { opacity: 0.5, scaleY: 0.7, duration: 1, ease: "power2.out" });
     gsap.to(naveCuerpo, { rotation: 13, duration: 1.4, ease: "power2.inOut" });
   };
 
   const terminarPaseo = () => {
     modoPaseo = false;
+    gsap.killTweensOf(paseo);
     gsap.to(propulsor, { opacity: 0, scaleY: 0.3, duration: 0.5, ease: "power2.in" });
     gsap.to(naveCuerpo, { rotation: 0, duration: 0.7, ease: "power2.inOut" });
   };
