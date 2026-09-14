@@ -77,10 +77,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cambiando) return;
     cambiando = true;
     gsap.killTweensOf(audio);
+
+    // OJO con "cambiando": marca que hay un fundido en curso para que dos
+    // cambios no se pisen. Tiene que volver a false SIEMPRE, tambien si el
+    // fundido se interrumpe. El play/pausa llama a gsap.killTweensOf(audio),
+    // asi que si ella toca "siguiente" y pausa en el mismo instante, el
+    // fundido muere a medias: sin onInterrupt, "cambiando" se quedaba en true
+    // para siempre y los botones de cancion dejaban de responder el resto de
+    // la sesion. Pasa con un gesto de lo mas normal.
+    const liberar = () => {
+      cambiando = false;
+    };
+
     gsap.to(audio, {
       volume: 0,
       duration: FUNDIDO / 2,
       ease: "power1.in",
+      onInterrupt: liberar,
       onComplete: () => {
         moverPosicion();
         ponerPista(true);
@@ -88,9 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
           volume: VOLUMEN,
           duration: FUNDIDO,
           ease: "power1.out",
-          onComplete: () => {
-            cambiando = false;
-          },
+          onInterrupt: liberar,
+          onComplete: liberar,
         });
       },
     });
@@ -132,7 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const alternarReproduccion = () => {
+    // Mata cualquier fundido en curso; el onInterrupt de arriba se encarga de
+    // soltar la marca, pero se pone aqui tambien por si acaso.
     gsap.killTweensOf(audio);
+    cambiando = false;
     if (audio.paused) {
       audio.volume = 0;
       audio.play().catch(() => {});
