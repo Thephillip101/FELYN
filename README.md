@@ -157,12 +157,15 @@ waits on a download.
 near-lossless settings and measured: not one pixel of actual drawing comes out
 different. It just weighs 96% less, because PNG is a bad fit for this kind of art and
 terrible at big transparent areas like the petals. If I ever add a new drawing, saving
-it as WebP keeps things consistent. The original PNGs are still in the git history if
-I ever need them:
+it as WebP keeps things consistent.
 
-```bash
-git show c52bc33:assets/images/vineta_01.png > vineta_01.png
-```
+The original PNGs are not in this repository. The history was restarted when the notes
+were encrypted, so they only exist in one place now:
+
+    Desktop/universo-felyn-originales-png
+
+All 22 of them, checked against the WebP versions. **That folder is the only copy** —
+if I ever clear out my desktop, that one stays.
 
 ## Adding a planet
 
